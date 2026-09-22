@@ -198,7 +198,8 @@
       btn.innerHTML = `
         <div class="cover-face">
           <div>
-            <div class="mark">&#10098;</div>
+           ${poem.cover ? `<img src="${poem.cover}" style="width:100%;height:100px;object-fit:cover;border-radius:4px;margin-bottom:8px;" alt="Cover">` : '<div class="mark">&#10098;</div>'}
+
             <div class="snippet">${firstLine}</div>
           </div>
         </div>
