@@ -168,7 +168,8 @@
 <header>
   <h1>Dare to Read</h1>
   <p>a small book of poems</p>
-<a href="admin.html" class="admin-link">⚙️ Admin</a>
+<a href="admin.html" class="admin-link" id="adminBtn" style="display: none;">⚙️ Admin</a>
+
 
 </header>
 
@@ -234,5 +235,12 @@
   });
 </script>
 
+
+  <script>
+  if (localStorage.getItem('vault_access_key')) {
+    const adminBtn = document.getElementById('adminBtn');
+    if (adminBtn) adminBtn.style.display = 'inline-block';
+  }
+</script>
 </body>
   </html>
