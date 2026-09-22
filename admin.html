@@ -60,6 +60,8 @@
     <input type="checkbox" id="rememberToken">
     <label for="rememberToken" style="margin:0;">remember on this device</label>
   </div>
+<label for="cover">Cover Image URL (optional)</label>
+<input type="url" id="cover" placeholder="Paste image link here">
 
   <label for="title">Title</label>
   <input type="text" id="title" placeholder="Poem title">
@@ -92,7 +94,9 @@
   // -------------------------------
   const PATH = "poems.json";
 
-  const tokenEl = document.getElementById('token');
+  const tokenEl = document.getElementById('token')
+const coverEl = document.getElementById('cover');
+
   const rememberEl = document.getElementById('rememberToken');
   const msgEl = document.getElementById('msg');
   const btn = document.getElementById('submitBtn');
@@ -111,6 +115,9 @@
 
   async function publish(){
     const token = tokenEl.value.trim();
+    const cover = coverEl.value.trim();
+
+
     const title = document.getElementById('title').value.trim();
     const body = document.getElementById('body').value;
     msgEl.textContent = '';
@@ -143,7 +150,7 @@
         throw new Error(err.message || ('Could not read poems.json (status ' + getRes.status + ')'));
       }
 
-      poems.push({ title, body });
+      poems.push({ title,cover, body });
 
       const putRes = await fetch(api, {
         method:'PUT',
