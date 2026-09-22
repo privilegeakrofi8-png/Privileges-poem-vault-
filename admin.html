@@ -136,19 +136,20 @@ const coverEl = document.getElementById('cover');
       '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
   }
 
-  async function publish(){
-    const token = tokenEl.value.trim();
-    const cover = coverDataUrl;
+  async function publish() {
+  const token = tokenEl.value.trim();
+  const cover = coverDataUrl;
 
+  const title = document.getElementById('title').value.trim();
+  const body = document.getElementById('body').value.trim();
+  msgEl.textContent = '';
+  msgEl.className = 'msg';
 
-    const title = document.getElementById('title').value.trim();
-    const body = document.getElementById('body').value;
-    msgEl.textContent = '';
-    msgEl.className = 'msg';
 
     if(!token){ msgEl.textContent = 'Enter your access key first.'; msgEl.className = 'msg error'; return; }
     if(!title){ msgEl.textContent = 'Enter a title first.'; msgEl.className = 'msg error'; return; }
-    if(!body.trim()){ msgEl.textContent = 'Write the poem first.'; msgEl.className = 'msg error'; return; }
+    if (!body) { msgEl.textContent = 'Write the poem first.'; msgEl.className = 'msg error'; return; }
+
 
     btn.disabled = true;
     msgEl.textContent = 'Publishing...';
@@ -168,10 +169,11 @@ const coverEl = document.getElementById('cover');
         const data = await getRes.json();
         sha = data.sha;
         poems = JSON.parse(b64DecodeUnicode(data.content.replace(/\n/g,'')));
-      } else if(getRes.status !== 404){
-        const err = await getRes.json().catch(()=>({}));
-        throw new Error(err.message || ('Could not read poems.json (status ' + getRes.status + ')'));
-      }
+      } } else if (getRes.status !== 404) {
+  const err = await getRes.json().catch(() => ({}));
+  throw new Error(err.message || 'Could not fetch existing poems.');
+}
+
 
       poems.push({ title,cover, body });
 
@@ -189,10 +191,11 @@ const coverEl = document.getElementById('cover');
         })
       });
 
-      if(!putRes.ok){
-        const err = await putRes.json().catch(()=>({}));
-        throw new Error(err.message || ('GitHub error ' + putRes.status));
-      }
+          if (!putRes.ok) {
+      const err = await putRes.json().catch(() => ({}));
+      throw new Error(err.message || 'GitHub save failed');
+    }
+
 
       msgEl.textContent = 'Published. It will appear on the site in a moment.';
       msgEl.className = 'msg ok';
