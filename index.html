@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dare to Read</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Parisienne&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0e1326;
+    --panel: #161d38;
+    --ink: #ece7da;
+    --ink-soft: #9c98a8;
+    --gold: #cda956;
+    --gold-line: rgba(205,169,86,0.32);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Cormorant Garamond",Georgia,serif;
+    -webkit-font-smoothing:antialiased;
+    padding-top:env(safe-area-inset-top,0px);
+    padding-bottom:env(safe-area-inset-bottom,0px);
+    min-height:100%;
+  }
+
+  header{
+    padding:3.4rem 1.4rem 1.8rem;
+    text-align:center;
+    border-bottom:1px solid var(--gold-line);
+  }
+  header h1{
+    margin:0;
+    font-family:"Parisienne",cursive;
+    font-weight:400;
+    color:var(--gold);
+    font-size:clamp(2.4rem,10vw,3.4rem);
+    line-height:1.1;
+  }
+  header p{
+    margin:0.7rem 0 0;
+    color:var(--ink-soft);
+    font-size:1rem;
+    font-style:italic;
+    letter-spacing:0.02em;
+  }
+
+  main{
+    max-width:920px;
+    margin:0 auto;
+    padding:2.4rem 1.2rem 4rem;
+  }
+
+  .shelf{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    gap:1.8rem 1.3rem;
+  }
+
+  .cover{
+    cursor:pointer;
+    border:none;
+    background:none;
+    padding:0;
+    font-family:inherit;
+    color:inherit;
+    text-align:left;
+    display:flex;
+    flex-direction:column;
+    gap:0.6rem;
+  }
+  .cover-face{
+    aspect-ratio:3/4;
+    background:var(--panel);
+    border:1px solid var(--gold-line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:1rem;
+    transition:border-color 0.15s ease, transform 0.15s ease;
+  }
+  .cover:active .cover-face{ transform:translateY(1px); border-color:var(--gold); }
+  .cover-face .mark{
+    color:var(--gold);
+    font-size:1.4rem;
+    margin-bottom:0.5rem;
+    font-family:"Parisienne",cursive;
+  }
+  .cover-face .snippet{
+    font-size:0.95rem;
+    color:var(--ink);
+    line-height:1.3;
+    font-style:italic;
+  }
+  .cover-title{font-size:0.9rem;color:var(--ink-soft);text-align:center;}
+
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    font-style:italic;
+    padding:3rem 1rem;
+  }
+
+  #reader{
+    position:fixed;
+    inset:0;
+    background:var(--bg);
+    padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px);
+    display:none;
+    overflow-y:auto;
+  }
+  #reader.open{ display:block; }
+  .reader-inner{
+    max-width:640px;
+    margin:0 auto;
+    padding:2.2rem 1.5rem 4rem;
+  }
+  #closeBtn{
+    position:sticky;
+    top:env(safe-area-inset-top,0px);
+    background:var(--bg);
+    border:none;
+    font-size:1.7rem;
+    color:var(--gold);
+    padding:0.6rem 0 0.4rem;
+    cursor:pointer;
+    font-family:Georgia,serif;
+  }
+  #reader h2{
+    font-weight:500;
+    font-size:1.9rem;
+    margin:0.6rem 0 1.8rem;
+    color:var(--gold);
+  }
+  #reader .poem-body{
+    white-space:pre-wrap;
+    font-size:1.18rem;
+    line-height:1.95;
+  }
+
+  footer{
+    text-align:center;
+    padding:2rem 1rem 3rem;
+    color:var(--ink-soft);
+    font-size:0.9rem;
+    font-style:italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Dare to Read</h1>
+  <p>a small book of poems</p>
+</header>
+
+<main>
+  <div class="shelf" id="shelf"></div>
+</main>
+
+<footer>tap a cover to read</footer>
+
+<div id="reader">
+  <div class="reader-inner">
+    <button id="closeBtn" aria-label="Close">&times;</button>
+    <h2 id="readerTitle"></h2>
+    <div class="poem-body" id="readerBody"></div>
+  </div>
+</div>
+
+<script>
+  const shelf = document.getElementById('shelf');
+  const reader = document.getElementById('reader');
+  const readerTitle = document.getElementById('readerTitle');
+  const readerBody = document.getElementById('readerBody');
+  let poems = [];
+
+  fetch('poems.json')
+    .then(r => r.ok ? r.json() : [])
+    .then(data => { poems = data; render(); })
+    .catch(() => { poems = []; render(); });
+
+  function render(){
+    shelf.innerHTML = '';
+    if(poems.length === 0){
+      shelf.innerHTML = '<div class="empty">no poems posted yet</div>';
+      return;
+    }
+    poems.forEach((poem, i) => {
+      const firstLine = (poem.body || '').split('\n')[0];
+      const btn = document.createElement('button');
+      btn.className = 'cover';
+      btn.innerHTML = `
+        <div class="cover-face">
+          <div>
+            <div class="mark">&#10098;</div>
+            <div class="snippet">${firstLine}</div>
+          </div>
+        </div>
+        <div class="cover-title">${poem.title}</div>
+      `;
+      btn.addEventListener('click', () => openPoem(i));
+      shelf.appendChild(btn);
+    });
+  }
+
+  function openPoem(i){
+    readerTitle.textContent = poems[i].title;
+    readerBody.textContent = poems[i].body;
+    reader.classList.add('open');
+    window.scrollTo(0,0);
+  }
+  document.getElementById('closeBtn').addEventListener('click', () => {
+    reader.classList.remove('open');
+  });
+</script>
+
+</body>
+  </html>
